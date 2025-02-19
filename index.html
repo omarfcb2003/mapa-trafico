@@ -103,6 +103,7 @@
             <option value="-34.6456,-58.4784,5000">Flores</option>
         </select>
         <button onclick="updateTraffic()">Actualizar Tráfico</button>
+        <button onclick="geolocateUser()">📍 Mi Ubicación</button>
         <p id="status">Última actualización: -</p>
     </div>
     
@@ -110,6 +111,7 @@
 
     <script>
         var map = L.map('map').setView([-34.603722, -58.381592], 12);
+        var userMarker = null; // Marcador del usuario
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors'
@@ -161,20 +163,29 @@
                 .catch(error => console.error("Error al cargar datos de tráfico:", error));
         }
 
-        function addLegend() {
-            var legend = L.control({ position: "bottomright" });
+        function geolocateUser() {
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    var userLat = position.coords.latitude;
+                    var userLon = position.coords.longitude;
 
-            legend.onAdd = function (map) {
-                var div = L.DomUtil.create("div", "legend");
-                div.innerHTML += "<b>Leyenda de Tráfico</b><br>";
-                div.innerHTML += '<i style="background: purple"></i> Congestión severa (Zona de Alta Demanda)<br>';
-                return div;
-            };
+                    if (userMarker) {
+                        userMarker.setLatLng([userLat, userLon]);
+                    } else {
+                        userMarker = L.marker([userLat, userLon]).addTo(map)
+                            .bindPopup("📍 Estás aquí").openPopup();
+                    }
 
-            legend.addTo(map);
+                    map.setView([userLat, userLon], 15);
+                }, function() {
+                    alert("No se pudo obtener tu ubicación.");
+                });
+            } else {
+                alert("Tu navegador no soporta geolocalización.");
+            }
         }
 
-        addLegend();
+        updateTraffic();
     </script>
 </body>
 </html>
