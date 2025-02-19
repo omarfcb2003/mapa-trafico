@@ -22,7 +22,7 @@
             z-index: 1000;
         }
 
-        button, select { 
+        button { 
             padding: 10px; 
             font-size: 16px; 
             cursor: pointer; 
@@ -52,7 +52,7 @@
                 height: 100vh; /* Hace que el mapa ocupe el 100% de la pantalla en móviles */
             }
 
-            button, select {
+            button {
                 font-size: 14px;
                 padding: 8px;
             }
@@ -82,26 +82,6 @@
 </head>
 <body>
     <div id="controls">
-        <label for="barrio">Selecciona un barrio:</label>
-        <select id="barrio">
-            <option value="-34.603722,-58.381592,20000">Todos</option>
-            <option value="-34.5781,-58.4269,5000">Palermo</option>
-            <option value="-34.6118,-58.4173,5000">San Telmo</option>
-            <option value="-34.5950,-58.3974,5000">Recoleta</option>
-            <option value="-34.6500,-58.4938,5000">Mataderos</option>
-            <option value="-34.6274,-58.3847,5000">Boedo</option>
-            <option value="-34.6076,-58.3791,5000">Monserrat</option>
-            <option value="-34.5562,-58.4646,5000">Belgrano</option>
-            <option value="-34.5932,-58.4030,5000">Retiro</option>
-            <option value="-34.6374,-58.5192,5000">Liniers</option>
-            <option value="-34.6050,-58.4189,5000">Balvanera</option>
-            <option value="-34.6525,-58.4012,5000">Barracas</option>
-            <option value="-34.5937,-58.4601,5000">Villa Urquiza</option>
-            <option value="-34.5904,-58.4882,5000">Villa Pueyrredón</option>
-            <option value="-34.5772,-58.4481,5000">Colegiales</option>
-            <option value="-34.6184,-58.4157,5000">Almagro</option>
-            <option value="-34.6456,-58.4784,5000">Flores</option>
-        </select>
         <button onclick="updateTraffic()">Actualizar Tráfico</button>
         <button onclick="geolocateUser()">📍 Mi Ubicación</button>
         <p id="status">Última actualización: -</p>
@@ -122,17 +102,10 @@
         function updateTraffic() {
             trafficLayer.clearLayers();
 
-            var selectedBarrio = document.getElementById("barrio").value.split(",");
-            var lat = parseFloat(selectedBarrio[0]);
-            var lon = parseFloat(selectedBarrio[1]);
-            var radius = parseInt(selectedBarrio[2]);
-
-            map.setView([lat, lon], 14); // Centrar mapa en el barrio seleccionado
-
             var overpassQuery = `
                 [out:json];
                 (
-                    way["highway"~"^(motorway|trunk|primary|secondary|tertiary|residential|unclassified|service)$"](around:${radius},${lat},${lon});
+                    way["highway"~"^(motorway|trunk|primary|secondary|tertiary|residential|unclassified|service)$"](around:10000,-34.603722,-58.381592);
                 );
                 out geom;
             `;
@@ -185,7 +158,20 @@
             }
         }
 
-        updateTraffic();
+        function addLegend() {
+            var legend = L.control({ position: "bottomright" });
+
+            legend.onAdd = function (map) {
+                var div = L.DomUtil.create("div", "legend");
+                div.innerHTML += "<b>Leyenda de Tráfico</b><br>";
+                div.innerHTML += '<i style="background: purple"></i> Congestión severa (Zona de Alta Demanda)<br>';
+                return div;
+            };
+
+            legend.addTo(map);
+        }
+
+        addLegend();
     </script>
 </body>
 </html>
